@@ -36,9 +36,9 @@ const NewsSidebar: React.FC = () => {
     const fetchSidebarData = async () => {
       try {
         const [archivesRes, categoriesRes, newsRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/news/archives"),
-          axios.get("http://localhost:3000/api/news/categories"),
-          axios.get("http://localhost:3000/api/news?limit=10"),
+          axios.get("https://nakestudios-be.vercel.app/api/news/archives"),
+          axios.get("https://nakestudios-be.vercel.app/api/news/categories"),
+          axios.get("https://nakestudios-be.vercel.app/api/news?limit=10"),
         ]);
         setArchives(archivesRes.data);
         setCategories(categoriesRes.data);
