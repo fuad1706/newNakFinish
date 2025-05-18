@@ -12,7 +12,9 @@ export const useNews = () => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:3000/api/news");
+        const response = await axios.get(
+          "https://nakestudios-be.vercel.app/api/news"
+        );
         let newsData: News[] = [];
 
         // Handle different response formats
