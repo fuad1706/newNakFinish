@@ -44,7 +44,9 @@ const NewsSearchResults: React.FC = () => {
         }
 
         const response = await fetch(
-          `http://localhost:3000/api/news/search?q=${encodeURIComponent(query)}`
+          `https://nakestudios-be.vercel.app/api/news/search?q=${encodeURIComponent(
+            query
+          )}`
         );
         console.log("Search API Response Status:", response.status);
         if (!response.ok) {
