@@ -90,7 +90,7 @@ const Motion: React.FC = () => {
                 key={video._id}
                 className={`cursor-pointer hover:opacity-80 transition p-2 rounded relative ${
                   currentVideo?._id === video._id
-                    ? "bg-gray-800 md:bg-gray-800"
+                    ? "bg-gray-800 md:bg-gray-800 bg-gray-300"
                     : ""
                 }`}
                 onClick={() => handleVideoClick(video)}
@@ -107,7 +107,7 @@ const Motion: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <p className="text-sm  md:text-gray-300 text-yellow-700 truncate mt-2">
+                <p className="text-sm text-gray-300 md:text-gray-300 text-yellow-700 truncate mt-2">
                   {video.title}
                 </p>
               </div>
@@ -126,6 +126,7 @@ const Motion: React.FC = () => {
                   src={currentVideo.url}
                   controls
                   autoPlay
+                  muted // Added to allow autoplay on mobile
                   className="w-full md:max-w-4xl rounded shadow-lg"
                 />
               </>
