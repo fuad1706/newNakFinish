@@ -52,7 +52,7 @@ const Motion: React.FC = () => {
     setCurrentVideo(video);
     if (videoPlayerRef.current && window.innerWidth < 768) {
       // Smooth scroll to the video player with offset to account for headers
-      const offset = 80; // Adjust based on any fixed headers
+      const offset = 60; // Adjust based on any fixed headers
       const playerPosition =
         videoPlayerRef.current.getBoundingClientRect().top +
         window.scrollY -
