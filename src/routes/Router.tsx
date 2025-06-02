@@ -6,6 +6,7 @@ import News from "../pages/News";
 import NewsDetail from "../pages/NewsDetail";
 import NewsArchives from "../pages/NewsArchives";
 import Icre8 from "../pages/Icre8";
+import Photography from "../pages/Photography";
 import Motion from "../pages/Motion";
 import NewsSearchResults from "../components/NewsSearchResults";
 import NewsCategory from "../pages/NewsCategory"; // Assuming this is the page (create if not exists)
@@ -17,6 +18,7 @@ const Router = () => {
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
       <Route path="/icre8" element={<Icre8 />} />
+      <Route path="photography" element={<Photography />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/motion" element={<Motion />} />
       {/* News Routes */}
