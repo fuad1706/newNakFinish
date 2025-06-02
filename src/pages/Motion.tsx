@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 // Define the Video interface
@@ -18,6 +18,7 @@ const Motion: React.FC = () => {
   const [currentVideo, setCurrentVideo] = useState<Video | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const videoPlayerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -47,8 +48,24 @@ const Motion: React.FC = () => {
     fetchVideos();
   }, []);
 
+  const handleVideoClick = (video: Video) => {
+    setCurrentVideo(video);
+    if (videoPlayerRef.current && window.innerWidth < 768) {
+      // Smooth scroll to the video player with offset to account for headers
+      const offset = 60; // Adjust based on any fixed headers
+      const playerPosition =
+        videoPlayerRef.current.getBoundingClientRect().top +
+        window.scrollY -
+        offset;
+      window.scrollTo({
+        top: playerPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col lg:flex-row">
+    <div className="flex h-screen text-white md:flex-row flex-col">
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-xl">Loading videos...</div>
@@ -63,28 +80,34 @@ const Motion: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Sidebar Thumbnails (Hidden on Mobile) */}
-          <div className="hidden lg:block lg:w-80 p-6 space-y-4 bg-gray-800 lg:h-screen lg:overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 transition-all duration-300">
-            <h2 className="text-2xl font-bold mb-6 tracking-tight">
-              Video Gallery
+          {/* Sidebar Thumbnails (Desktop) / Video List (Mobile) */}
+          <div className="md:w-1/4 md:p-4 md:space-y-4 md:overflow-y-auto md:bg-gray-900 md:border-r md:border-gray-700 p-4 space-y-4 overflow-y-auto bg-gray-100 text-black order-2 md:order-1">
+            <h2 className="text-xl font-semibold mb-4 md:block hidden">
+              Video List
             </h2>
             {videos.map((video) => (
               <div
                 key={video._id}
-                className={`group relative cursor-pointer rounded-lg overflow-hidden transition-transform duration-300 hover:scale-105 ${
+                className={`cursor-pointer hover:opacity-80 transition p-2 rounded relative ${
                   currentVideo?._id === video._id
-                    ? "ring-2 ring-yellow-500"
+                    ? "bg-gray-800 md:bg-gray-800"
                     : ""
                 }`}
-                onClick={() => setCurrentVideo(video)}
+                onClick={() => handleVideoClick(video)}
               >
-                <img
-                  src={video.thumbnail.url}
-                  alt={video.title}
-                  className="w-full h-32 object-cover rounded-lg group-hover:opacity-90 transition-opacity duration-300"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <p className="mt-2 text-sm font-medium text-gray-200 group-hover:text-yellow-400 transition-colors duration-300">
+                <div className="relative">
+                  <img
+                    src={video.thumbnail.url}
+                    alt={video.title}
+                    className="rounded w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white text-3xl bg-black bg-opacity-50 rounded-full p-2">
+                      ▶
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm  md:text-gray-300 text-yellow-700 truncate mt-2">
                   {video.title}
                 </p>
               </div>
@@ -92,66 +115,20 @@ const Motion: React.FC = () => {
           </div>
 
           {/* Main Video Player */}
-          <div className="flex-1 flex flex-col items-center justify-center p-2 lg:p-8 my-[-100px] bg-gray-900">
+          <div
+            ref={videoPlayerRef}
+            className="flex-1 flex flex-col items-center justify-center p-6 md:p-6 bg-gray-900 order-1 md:order-2"
+          >
             {currentVideo && (
-              <div className="w-full max-w-5xl">
-                <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
-                  <video
-                    key={currentVideo.url}
-                    src={currentVideo.url}
-                    controls
-                    className="w-full h-full object-contain"
-                  />
-                  <div className="absolute top-4 left-4 bg-black/70 px-3 py-1 rounded-full flex items-center space-x-2">
-                    <span className="text-sm font-semibold">
-                      {currentVideo.title}
-                    </span>
-                    {/* Show progress indicator in desktop view only */}
-                    <span className="hidden lg:inline text-xs text-gray-300">
-                      {videos.findIndex((v) => v._id === currentVideo._id) + 1}{" "}
-                      of {videos.length}
-                    </span>
-                  </div>
-                </div>
-                {/* Navigation Buttons and Progress Indicator (Visible on Mobile Only) */}
-                <div className="flex items-center justify-between mt-4 lg:hidden">
-                  <button
-                    onClick={() =>
-                      setCurrentVideo(
-                        videos[
-                          (videos.findIndex((v) => v._id === currentVideo._id) -
-                            1 +
-                            videos.length) %
-                            videos.length
-                        ]
-                      )
-                    }
-                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors duration-300 disabled:opacity-50"
-                    disabled={videos.length <= 1}
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-300">
-                    {videos.findIndex((v) => v._id === currentVideo._id) + 1} of{" "}
-                    {videos.length}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCurrentVideo(
-                        videos[
-                          (videos.findIndex((v) => v._id === currentVideo._id) +
-                            1) %
-                            videos.length
-                        ]
-                      )
-                    }
-                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors duration-300 disabled:opacity-50"
-                    disabled={videos.length <= 1}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+              <>
+                <video
+                  key={currentVideo.url}
+                  src={currentVideo.url}
+                  controls
+                  muted // Kept for mobile compatibility, but video won't autoplay
+                  className="w-full md:max-w-4xl rounded shadow-lg"
+                />
+              </>
             )}
           </div>
         </>
