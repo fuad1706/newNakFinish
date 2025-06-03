@@ -4,6 +4,23 @@ import "yet-another-react-lightbox/styles.css";
 import AOS from "aos";
 import "aos/dist/aos.css";
 
+// Define types for our data structures
+interface GalleryImage {
+  url: string;
+  public_id: string;
+  _id: string;
+  isActive?: boolean;
+  order?: number;
+}
+
+interface ApiResponse {
+  images: GalleryImage[];
+}
+
+interface Slide {
+  src: string;
+}
+
 const imgList: string[] = [
   "a1.png",
   "a2.png",
@@ -76,23 +93,57 @@ const imgList: string[] = [
   "a69.jpg",
 ];
 
-interface Slide {
-  src: string;
-}
-
 const Photography: React.FC = () => {
   const [index, setIndex] = useState<number>(-1); // -1 means closed
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Initialize AOS and fetch images
   useEffect(() => {
     AOS.init({
-      duration: 800, // Animation duration in ms
-      once: true, // Only animate once when scrolled into view
+      duration: 800,
+      once: true,
       easing: "ease-in-out",
     });
+
+    const fetchImages = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          "https://nakestudios-be.vercel.app/api/photography"
+        );
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data: ApiResponse = await response.json();
+        setImages(data.images);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching photography gallery images:", err);
+        setError(
+          err instanceof Error ? err.message : "An unknown error occurred"
+        );
+
+        const fallbackData = imgList.map((img) => ({
+          url: `/images/${img}`,
+          public_id: img,
+          _id: img,
+        }));
+
+        setImages(fallbackData);
+        setLoading(false);
+      }
+    };
+
+    fetchImages();
   }, []);
 
-  const slides: Slide[] = imgList.map((img: string) => ({
-    src: `/images/${img}`,
+  // Prepare slides for Lightbox
+  const slides: Slide[] = images.map((image) => ({
+    src: image.url,
   }));
 
   const handleImageClick = (i: number): void => {
@@ -103,19 +154,35 @@ const Photography: React.FC = () => {
     setIndex(-1);
   };
 
+  if (loading && images.length === 0) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading gallery...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {slides.map((slide: Slide, i: number) => (
-        <img
-          key={i}
-          src={slide.src}
-          alt={`Image ${i}`}
-          onClick={() => handleImageClick(i)}
-          loading="lazy"
-          data-aos="fade-up" // 👈 AOS scroll animation
-          className="cursor-pointer w-full h-full aspect-[3/4] object-cover rounded hover:scale-105 transition-transform duration-300"
-        />
-      ))}
+    <div className="p-6">
+      {error && (
+        <div className="w-full bg-red-500 text-white text-center py-2 mb-4 rounded">
+          Error loading images: {error}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {images.map((image, i) => (
+          <img
+            key={image._id}
+            src={image.url}
+            alt={`Image ${i}`}
+            onClick={() => handleImageClick(i)}
+            loading="lazy"
+            data-aos="fade-up"
+            className="cursor-pointer w-full h-full aspect-[3/4] object-cover rounded hover:scale-105 transition-transform duration-300"
+          />
+        ))}
+      </div>
 
       <Lightbox
         open={index >= 0}
